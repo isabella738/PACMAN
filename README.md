@@ -3,6 +3,7 @@ Uma recriação com base nas mecânicas clássicas do jogo.
 Pacman é um jogo de labirinto cujo objetivo é comer todas as bolinhas espalhadas pelo mapa, sem ser morto pelos fantasmas. Cada fantasma possui uma estratégia distinta para encurralar o pacman, e se locomovem pelo mapa conforme sua própria "personalidade".  
 
 Este código é uma versão simplificada. Diferente do clássico, este possui uma fase somente. Sujeito a bugs.  
+Funciona em Linux; Não testado em Windows.  
 ## Sobre os personagens  
 O Pacman possui 3 vidas. Pode se locomover para todos os lados, se limitando somente às paredes do mapa. Ganha +1 ponto ao comer as bolinhas simples. Ganha a habilidade de comer os fantasmas ao comer a bolinha especial. Comer um fantasma garante mais 100 pontos.  
 
