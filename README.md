@@ -1,4 +1,5 @@
 # PACMAN
+Projeto não concluído. 
 Uma recriação com base nas mecânicas clássicas do jogo.  
 Pacman é um jogo de labirinto cujo objetivo é comer todas as bolinhas espalhadas pelo mapa, sem ser morto pelos fantasmas. Cada fantasma possui uma estratégia distinta para encurralar o pacman, e se locomovem pelo mapa conforme sua própria "personalidade".  
 Para executar: 
@@ -7,7 +8,7 @@ Para executar:
 3. copiar e colar: make && ./PACMAN 
 
 Este código é uma versão simplificada. Diferente do clássico, este possui uma fase somente. Sujeito a bugs.  
-Funciona em Linux; Não testado em Windows.  
+
 ## Sobre os personagens  
 O Pacman possui 3 vidas. Pode se locomover para todos os lados, se limitando somente às paredes do mapa. Ganha +1 ponto ao comer as bolinhas simples. Ganha a habilidade de comer os fantasmas ao comer a bolinha especial. Comer um fantasma garante mais 100 pontos.  
 
@@ -45,33 +46,26 @@ III. É liberado após uma quantidade grande de pontos.
 
 ## Sobre o código
 
-### Estruturas
-Os personagens são formados por uma estrutura chamada "entidade". Uma entidade contém:  
-I. Coordenada própria  
-II. Coordenada do alvo  
-III. Cor  
-IV. Modo/Estado  
-V. Caractere  
-VI. Direcionamento (1: esquerda, 2: cima, 3: direita, 4: baixo)  
-VII. Velocidade (representa o cooldown que permite a movimentação)    
-O Pacman utiliza esta mesma estrutura, apesar de não usar todos os elementos.   
+### Lógica
+Os fantasmas tomam decisões baseadas no seu estado/modo vigente.
+Os fantasmas mudam de estado conforme duas variáveis:
+- modo_global: assume valor 0 ou 1 para indicar se os fantasmas estão perseguindo ou se dispersando. É declarada no jogo, externa aos fantasmas. Quando seu valor é 1, todos os fantasmas ao mesmo tempo estão perseguindo, se não, todos estão se dispersando. 
+- modo interno: cada fantasma tem uma variavel própria que se sobrepõe ao modo_global, que diz respeito ao seu estado quando estão assustados(1), comidos(2) ou presos(3). Quando o valor é 0, são regidos pelo modo_global.
+Desta forma, todos os fantasmas se mantém sincronizados. 
 
-Cada caractere do mapa também é organizado numa estrutura, denominada "célula". Cada célula contém:  
+Os fantasmas se movimentam segundo o seguinte algoritmo: definir alvo -> definir direção -> mudar posição. 
+Eles fazem somente perseguir um alvo pelo jogo inteiro. Este alvo é determinado pelo modo vigente. A partir deste alvo, calcula-se os caminhos livres e é escolhido aquele cuja distância até o alvo é a mais curta. Com este caminho, define-se uma direção (0 = cima, 1 = direita, 2 = baixo, 3 = esquerda), e então, se movimenta para aquela direção. 
+Quando os fantasmas estão assustados, o alvo é definido de forma aleatória a cada movimentação. Quando estão comidos ou presos, seguem um algoritmo para que consigam entrar/sair no quadrado central. Quando estão perseguindo ou dispersando, seguem as regras ditas no tópico anterior. 
+
+O pacman segue regras semelhantes, porém mais simples. Não possui um alvo, somente a direção, que é determinada pelo comando no teclado.
+
+As entidades se movimentam sempre que seu próprio cronômetro interno, o cooldown, chega a 0. Elas conseguem andar para qualquer célula que não tenha sido declarada como parede. A única exceção são os fantasmas quando estão no estado 3 (comidos) e dentro do quadrado central. Estes tem as barreiras temporariamente desativadas para conseguir atravessar a "porta". 
+
+### Estruturas
+Os objetos vêm de uma classe base denominada Entidade que contem elementos comuns a todos os personagens, como posição própria, caractere, cor, andar, etc. É desta classe que vem o objeto Pacman. 
+Os fantasmas vêm da classe derivada Fantasmas, com elementos específicos para este tipo de entidade. 
+
+Cada caractere do mapa também é organizado numa classe. Cada célula contém:  
 I. Caractere  
 II. Tipo (0: parede, 1: vazio, 2: ponto, 3: bolinhas especiais)   
 III. Cor (paredes tem cor cinza para destacar dos pontos e bolinhas)  
-
-### Organização  
-
-O código é organizado em uma sequência de passos lógicos:  
-1. Inicialização de variáveis, redução de cooldowns e checagem da condição de liberação dos fantasmas.  
-2. Verificação de colisões entre entidades ou a ação de comer as bolinhas  
-3. Definição do estado dos fantasmas
-4. Definição do alvo dos fantasmas
-5. Movimentação das entidades
-6. Impressão
-
-### Movimentação
-As entidades se movimentam sempre que seu próprio cronômetro interno, o cooldown, chega a 0. Elas conseguem andar para qualquer célula que não tenha sido declarada como parede. A única exceção são os fantasmas quando estão no estado 4 (comidos) e dentro do quadrado central. Estes conseguem atravessar o caractere '~' para entrar e sair do centro.  
-
-A cada movimentação, os fantasmas calculam a quantidade de caminhos que estão disponíveis ao redor dele, desconsiderando a direção para trás. Se existe somente 1, este é escolhido. Se existem mais, é escolhido aquele cuja distância do alvo é menor (por teorema de pitágoras). 
