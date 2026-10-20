@@ -1,0 +1,20 @@
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Pac-Man",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/PACMAN",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "Compilar e Rodar Pac-Man"
+        }
+    ]
+}
