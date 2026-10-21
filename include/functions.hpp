@@ -1,3 +1,6 @@
+/*
+    Cabeçalho das funções declaradas em functions.cpp
+*/
 #include "settings.hpp"
 
 #ifndef FUNCTIONS
@@ -18,11 +21,8 @@ void pausa(int msg);
 void iniciar();
 void ler_teclado();
 void inicializar_fantasmas();
-
 void inicialização_mapa();
-
 void iniciar_fase();
-
 void info_para_desenvolvedores();
 
 #endif

@@ -1,9 +1,14 @@
+/*
+    Principais funções de cálculo do jogo
+*/
+
 #include "settings.hpp"
 #include "classes.hpp"
 #include <iostream>
 #include <thread>
 #include <chrono>
 #include <cstdlib>
+#include <math.h>
 #if defined (LINUX)
     #include <termios.h>
     #include <unistd.h>
@@ -19,7 +24,6 @@ void inicializar_fantasmas(){// 1 vez no main
         fantasma[i]->spawn = {10, 11+ 2*i};
         fantasma[i]->cor = 3+i;
         fantasma[i]->simbolo = '@';
-        fantasma[i]->liberado = 0;
     }
 
     Blinky.perseguir = []() {
@@ -31,7 +35,7 @@ void inicializar_fantasmas(){// 1 vez no main
 
     //
     Pinky.perseguir = []() {
-        Pinky.alvo = {Pacman.p.y + 2*direcao[Pacman.d].y, Pacman.p.x + 2*direcao[Pacman.d].x};
+        Pinky.alvo = Pacman.p + direcao[Pacman.d]*2;
     };
     Pinky.dispersar = []() {
         Pinky.alvo = {0, 0};
@@ -39,7 +43,7 @@ void inicializar_fantasmas(){// 1 vez no main
 
     //
     Inky.perseguir = []() {
-        equacao_reta(Blinky.p, Pacman.p, &Inky.alvo);
+        equacao_reta(Blinky.p, Pacman.p + direcao[Pacman.d]*2, &Inky.alvo);
     };
     Inky.dispersar = []() {
         Inky.alvo = {ALT, LARG};
@@ -54,6 +58,8 @@ void inicializar_fantasmas(){// 1 vez no main
         Clyde.alvo = {ALT, 0};
     };
 
+    Pacman.cor = 2;
+    Pacman.velocidade = VEL_PAC;
 }
 
 void inicialização_mapa(){// 1 vez no main
@@ -86,16 +92,17 @@ void inicialização_mapa(){// 1 vez no main
 }
 
 void iniciar_fase(){
-    contador = 0;
+    contador_dots = 0;
+    contador_f = 0;
     Pacman.p = {12, 14};
     Pacman.d = 3;
-    Pacman.velocidade = VEL_PAC;
     Pacman.simbolo = '<';
 
     //fantasmas começam presos e nos seus respectivos spawns
     for(int i=0; i<4; i++){
         fantasma[i]->p = fantasma[i]->spawn;
         fantasma[i]->modo = 3;
+        fantasma[i]->liberado = 0;
     }
     
     //blinky começa fora do quadrado
@@ -121,7 +128,7 @@ void iniciar(){//antes de cada fase
 //Outros
 
 void entrar_no_quadrado(Fantasma *f){
-    if(f->modo == 2 && f->p.x == 14 && f->p.y == 8){//chegou na "porta"
+    if(f->modo == 2 && f->p == Coordenada{8, 14}){//chegou na "porta"
         f->desativar_barreiras = 1;
         f->entrando = 1;
     }
@@ -177,27 +184,23 @@ void imp(char c, int i){
 
 void imprimir(){
     std::cout << VOLTAR;
-    std::cout << "Pontuacao: " << pontos << std::endl;
-    for(int i=0; i<vida; i++){
-        std::cout << AMARELO << "@ " << RESET;
-    }
-    std::cout <<'\n';
     
     for(int y=0; y<ALT; y++){
         for(int x=0; x<LARG; x++){
             int i=0;
-            if(Pacman.p.x == x && Pacman.p.y == y){
+            Coordenada coord = {y, x};
+            if(Pacman.p == coord){
                 imp(Pacman.simbolo, Pacman.cor);
                 i=1;
             }
             else for(int a=0; a<4; a++){
-                if(fantasma[a]->p.x == x && fantasma[a]->p.y == y){
+                if(fantasma[a]->p == coord){
                     switch(fantasma[a]->modo){
                         case 1:
-                            imp(fantasma[a]->simbolo, 8);
+                            imp(fantasma[a]->simbolo, 7);
                             break;
                         case 2:
-                            imp(fantasma[a]->simbolo, 1);
+                            imp('*', 1);
                             break;
                         default:
                             imp(fantasma[a]->simbolo, fantasma[a]->cor);
@@ -211,7 +214,14 @@ void imprimir(){
         }
         imp('\n', 0);
     }
-    info_para_desenvolvedores();
+    
+    std::cout << "Pontuacao: " << pontos << std::endl;
+    for(int i=0; i<vida; i++){
+        std::cout << AMARELO << "@ " << RESET;
+    }
+    std::cout <<"               \n";
+
+    //info_para_desenvolvedores();
 }
 
 void pausa(int msg){
@@ -225,24 +235,26 @@ int colisao(){
     Coordenada p = Pacman.p;
 
     if(mapa[p.y][p.x].tipo == 2){
-        pontos++;
-        contador++;
+        pontos += P_DOTS;
+        contador_dots ++;
         mapa[p.y][p.x].tipo = 0;
         mapa[p.y][p.x].c = ' ';
     }
     else if(mapa[p.y][p.x].tipo == 3){
-        pontos += 10;
+        pontos += P_POWER;
         cd_assustados = TEMPO_ASSUSTADO;
         mapa[p.y][p.x].tipo = 0;
         mapa[p.y][p.x].c = ' ';
     }
     for(int i=0; i<4; i++){
         if(fantasma[i]->p == p){
-            if(fantasma[i]->modo == 0){
+            if(fantasma[i]->modo == 0){//perdeu
                 vida--;
                 return 1;
             }
-            else if(fantasma[i]->modo == 1){
+            else if(fantasma[i]->modo == 1){//comer fantasma
+                pontos += P_COMER*pow(2, contador_f);
+                contador_f++;
                 fantasma[i]->modo = 2;
             }
             break;
@@ -251,7 +263,7 @@ int colisao(){
     return 0;
 }
 
-void game_config(){
+void game_config(){ //gerencia cooldowns e codição de liberação de fantasmas
     vitoria = 1;
 
     cd_modo--;
@@ -261,10 +273,15 @@ void game_config(){
     }
 
     if(cd_assustados == TEMPO_ASSUSTADO){
-        for(int i=0; i<4; i++) fantasma[i]->modo = 1;
+        for(int i=0; i<4; i++){ 
+            if(fantasma[i]->modo == 0) fantasma[i]->modo = 1;
+        }
     }
     else if(cd_assustados == 1){
-        for(int i=0; i<4; i++) fantasma[i]->modo = 0;
+        contador_f = 0;
+        for(int i=0; i<4; i++) {
+            if(fantasma[i]->modo == 1) fantasma[i]->modo = 0;
+        }
     }
     if(cd_assustados)
         cd_assustados--;
@@ -275,9 +292,9 @@ void game_config(){
         }
     }
     
-    if(contador >= 7 && !Pinky.liberado){ Pinky.liberado = 1; Pinky.modo = 0;}
-    if(contador >= 17 && !Inky.liberado){ Inky.liberado = 1; Inky.modo = 0;}
-    if(contador >= 32 && !Clyde.liberado){ Clyde.liberado = 1; Clyde.modo = 0;}
+    if(contador_dots >= 7 && !Pinky.liberado){ Pinky.liberado = 1; Pinky.modo = 0;}
+    if(contador_dots >= 17 && !Inky.liberado){ Inky.liberado = 1; Inky.modo = 0;}
+    if(contador_dots >= 32 && !Clyde.liberado){ Clyde.liberado = 1; Clyde.modo = 0;}
 }
 
 void ler_teclado(){
@@ -305,12 +322,12 @@ void ler_teclado(){
             }
             break;
         case 's':
-            if(mapa[y-1][x].tipo != 1){
+            if(mapa[y+1][x].tipo != 1){
                 Pacman.d = 2; Pacman.simbolo = 'V'; 
             }
             break;
         case 'a':
-            if(mapa[y-1][x].tipo != 1){
+            if(mapa[y][x-1].tipo != 1){
                 Pacman.d = 3; Pacman.simbolo = '<'; 
             }
             break;
@@ -321,4 +338,11 @@ void info_para_desenvolvedores(){
     std::cout << '\n';
     std::cout << Pacman.p.y << ' ' << Pacman.p.x << "   " << std::endl;
     std::cout << "Direcao: " << Pacman.d << std::endl;
+    std::cout << "Modo global: " << modo_global << std::endl;
+    //std::cout << "Blinky.alvo: " << Blinky.alvo.y << " " << Blinky.alvo.x << "    " << std::endl;
+    std::cout << "Blinky.modo: " << Blinky.modo << "    " << std::endl;
+    std::cout << "Contador: " << contador_dots << "    " << std::endl;
+    //std::cout << "Cooldown: " << cd_assustados << "     " << std::endl;
+    //std::cout << "Blinky.p: " << Blinky.p.y << ' ' << Blinky.p.x << "   " << std::endl;
+    //std::cout << "Blinky.d: " << Blinky.d << "    " << std::endl;
 }

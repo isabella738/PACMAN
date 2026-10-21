@@ -1,5 +1,6 @@
 /*
     Definição de classes e referencias a objetos
+    Incluir este arquivo em outro é suficiente para que ele reconheça todos estes elementos.
 */
 
 #ifndef CLASS
@@ -7,6 +8,7 @@
 
 #include "settings.hpp"
 #include "functions.hpp"
+#include <iostream>
 
 class Mapa {
     public:
@@ -19,6 +21,7 @@ extern Mapa mapa[ALT][LARG];
 class Entidade {
     public:
         char simbolo;
+        bool desativar_barreiras;
         int d;
         int cor;
         int velocidade;
@@ -35,7 +38,11 @@ class Entidade {
         }
 
         int andar(){
-            if(mapa[p.y + direcao[d].y][p.x + direcao[d].x].tipo != 1){
+            if(
+                mapa[p.y + direcao[d].y][p.x + direcao[d].x].tipo != 1 || 
+                p.x + direcao[d].x == -1 || p.x + direcao[d].x == LARG ||
+                desativar_barreiras
+            ){
                 p.y += direcao[d].y;
                 p.x += direcao[d].x;
                 
@@ -49,7 +56,6 @@ class Entidade {
 class Fantasma : public Entidade {
     public:
         int modo;//(0=dispersar/perseguir, 1=vulneravel, 2=comido, 3=preso)
-        bool desativar_barreiras;
         bool entrando;
         bool liberado;
         Coordenada alvo;
@@ -79,30 +85,40 @@ class Fantasma : public Entidade {
             else if(modo == 2){//comido
                 entrar_no_quadrado(this);
 
-                if(entrando) alvo = spawn;
+                //if(entrando) alvo = spawn;
+                if(entrando){
+                    if(p.y != 10) alvo = {10, p.x};
+                    else alvo = spawn;
+                }
                 else alvo = {8, 14};
             }
             else if(modo == 3){//preso
                 //isso faz ele ficar andandinho
-                if(alvo.x >= spawn.x)
-                    alvo = {spawn.y, spawn.x-1};
-                else
-                    alvo = {spawn.y, spawn.x+1};
+                if(p.x == spawn.x)
+                    p.x++;
+                else if(p.x == spawn.x+1)
+                    p.x--;
             }
         }
 
         void definir_direcao(){
-            int dir[4] = {1, 1, 1, 1};
-            
-            d < 2 ? (dir[d+2] = 0) : (dir[d-2] = 0); //invalidar andar para tras
+            //para surgir do outro lado do mapa
+            if((p.x == 0 && d==3) || (p.x == LARG-1 && d==1)) return;
 
-            for(int i=0; i<4; i++){//definir posicoes possiveis
-                if(dir[i]){
-                    if(mapa[p.y + direcao[i].y][p.x + direcao[i].x].tipo == 1) dir[i] = 0;
+            double menor=10000000;
+            int indice=-1;
+            int dir[4] = {1, 1, 1, 1};
+
+            if(!desativar_barreiras){// bloquear caminhos invalidos. se nao, todos os caminhos sao validos
+                d < 2 ? (dir[d+2] = 0) : (dir[d-2] = 0); //invalidar andar para tras
+
+                for(int i=0; i<4; i++){//definir posicoes possiveis
+                    if(dir[i]){
+                        if(mapa[p.y + direcao[i].y][p.x + direcao[i].x].tipo == 1) dir[i] = 0;
+                    }
                 }
             }
 
-            int menor=10000000, indice=-1;
             for(int i=0; i<4; i++){//definir a menor distancia dentre as posições possiveis
                 if(dir[i]){
                     double n = distancia(alvo, {(p.y + direcao[i].y), (p.x + direcao[i].x)});
@@ -122,21 +138,3 @@ extern Fantasma *fantasma[4];
 extern Entidade Pacman;
 
 #endif
-
-/*
-    modo (interno)
-    modo_global (do jogo)
-
-    foi comido:
-        entrar no quadrado
-            - ir até 8, 14
-            - ir para o spawn
-        chegou no spawn: está preso
-    
-    estava preso e foi liberado:
-        modo=0 e esta_no_quadrado:
-            - ir até x=14
-            - ir até y=8
-        saiu do quadrado: segue a vida
-
-*/

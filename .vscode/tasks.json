@@ -4,7 +4,7 @@
         {
             "label": "Compilar e Rodar Pac-Man",
             "type": "shell",
-            "command": "make clean && make && ./PACMAN",
+            "command": "make && ./PACMAN",
             "args": [],
             "group": {
                 "kind": "build",

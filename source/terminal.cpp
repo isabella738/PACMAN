@@ -1,3 +1,7 @@
+/*
+    Funções necessarias para a leitura do teclado em linux
+*/
+
 #include "settings.hpp"
 
 #ifdef LINUX

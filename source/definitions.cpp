@@ -1,3 +1,7 @@
+/*
+    Declarações das variaveis referenciadas em settings.hpp e classes.hpp
+*/
+
 #include "settings.hpp"
 #include "classes.hpp"
 
@@ -5,7 +9,8 @@ Fantasma Blinky = {0}, Inky = {0}, Pinky = {0}, Clyde = {0};
 Entidade Pacman = {0};
 Mapa mapa[ALT][LARG];
 
-int pontos=0, modo_global = 1, cd_assustados=0, cd_modo = TROCAR_MODO, contador=0, vida=3, vitoria=0;//def
+int pontos=0, modo_global = 1, cd_assustados=0, cd_modo = TROCAR_MODO, vida=3, vitoria=0;//def
+int contador_dots=0, contador_f=0;
 
 Fantasma *fantasma[4] = {
     &Blinky, &Inky, &Pinky, &Clyde

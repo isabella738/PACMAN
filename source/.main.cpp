@@ -1,3 +1,7 @@
+/*
+    Onde ocorre o jogo, na função main
+*/
+
 #include <iostream>
 #include "functions.hpp"
 #include "classes.hpp"
@@ -30,12 +34,12 @@ int main(){
         for(int i=0; i<4; i++){            
             int v = VEL_F;
             if(fantasma[i]->modo == 1) v*=2;
-            else if(fantasma[i]->modo == 2) v/=2;
+            else if(fantasma[i]->modo == 2) v=1;
 
             if(fantasma[i]->cooldown(v)){
                 fantasma[i]->definir_alvo(modo_global);
                 fantasma[i]->definir_direcao();
-                fantasma[i]->andar();
+                if(fantasma[i]->modo != 3) fantasma[i]->andar();
             }
         }
         if(Pacman.cooldown(VEL_PAC)) Pacman.andar();
@@ -48,7 +52,7 @@ int main(){
         
         imprimir();
         pausa(SEGUNDOS/FPS);
-        std::cout << frames++;
+        //std::cout << frames++;
     }while(1);
 
     if(vida)
