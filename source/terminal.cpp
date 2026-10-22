@@ -1,8 +1,10 @@
 /*
-    Funções necessarias para a leitura do teclado em linux
+    Funções que dependem do sistema operacional
 */
 
 #include "settings.hpp"
+#include "terminal.hpp"
+#include <stdlib.h>
 
 #ifdef LINUX
     #include <termios.h>
@@ -20,5 +22,28 @@
     void restaurar_terminal(){
         tcsetattr(STDIN_FILENO, TCSANOW, &velho_terminal);
     }
+#endif 
 
-#endif
+int ler_teclado(char *comando){
+    #if defined(WINDOWS)
+        if(_kbhit()) {
+            (*comando) = _getch();
+            return 1;
+        }
+    #elif defined(LINUX)
+        char c;
+        if(read(STDIN_FILENO, &c, 1) > 0){ 
+            (*comando) = c;
+            return 1;
+        }
+    #endif
+    return 0;
+}
+
+void limpar_tela(){
+    #if defined(LINUX)
+        system("clear");
+    #else
+        system("cls");
+    #endif
+}

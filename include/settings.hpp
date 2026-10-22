@@ -9,12 +9,6 @@
 #ifndef SETTINGS
 #define SETTINGS
 
-#if defined(_WIN32) || defined(_WIN64)
-    #define WINDOWS
-#elif defined(__linux__)
-    #define LINUX
-#endif
-
 #define VOLTAR "\033[H"//volta para o inicio do terminal
 #define ALT 22
 #define LARG 30
@@ -65,7 +59,7 @@ struct Coordenada {
 extern int pontos, modo_global, cd_assustados, cd_modo, vida, vitoria;
 extern int contador_dots, contador_f;
 
-extern char cores[][9], simb[4];
+extern char cores[][9], simb[4], inicio[2][13][40];
 extern Coordenada direcao[4];
 
 #endif

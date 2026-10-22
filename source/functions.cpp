@@ -4,18 +4,29 @@
 
 #include "settings.hpp"
 #include "classes.hpp"
+#include "terminal.hpp"
 #include <iostream>
 #include <thread>
 #include <chrono>
 #include <cstdlib>
 #include <math.h>
-#if defined (LINUX)
-    #include <termios.h>
-    #include <unistd.h>
-#elif defined (WINDOWS)
-    #include <conio.h>
-    #include <windows.h>
-#endif
+
+void cutscene(){
+    int i=0;
+    while(1){
+        std::cout << VOLTAR;
+
+        for(int y=0; y<13; y++){
+            std::cout << AMARELO << inicio[i][y] << RESET << std::endl;
+        }
+        pausa(0.5*SEGUNDOS);
+        i = !i;
+
+        char c;
+        if(ler_teclado(&c)) break;
+    }
+    limpar_tela();
+}
 
 void inicializar_fantasmas(){// 1 vez no main
 
@@ -297,17 +308,10 @@ void game_config(){ //gerencia cooldowns e codição de liberação de fantasmas
     if(contador_dots >= 32 && !Clyde.liberado){ Clyde.liberado = 1; Clyde.modo = 0;}
 }
 
-void ler_teclado(){
-    char comando;
+void pacman_comando(){
 
-    #if defined(WINDOWS)
-        if(_kbhit()) {
-            comando = _getch();
-        }
-    #elif defined(LINUX)
-        char c;
-        if(read(STDIN_FILENO, &c, 1) > 0) comando = c;
-    #endif
+    char comando;
+    if(!ler_teclado(&comando)) return;
 
     int y = Pacman.p.y, x = Pacman.p.x;
     switch(comando){

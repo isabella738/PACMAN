@@ -6,28 +6,28 @@
 #include "functions.hpp"
 #include "classes.hpp"
 #include "settings.hpp"
+#include "terminal.hpp"
+
 #if defined(LINUX)
     #include <fcntl.h>
     #include <unistd.h>
-    #include "terminal.hpp"
 #endif
 
 int main(){
     #if defined(LINUX)
-        fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
         mudar_terminal();
-        system("clear");
-    #else
-        system("cls");
+        fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
     #endif
 
+    limpar_tela();
+    cutscene();
     inicialização_mapa();
     inicializar_fantasmas();
     iniciar();
     
     int frames=0;
     do{
-        ler_teclado();
+        pacman_comando();
         game_config();
         if(vitoria) break;
         
