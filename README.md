@@ -2,10 +2,10 @@
 Uma recriação com base nas mecânicas clássicas do jogo.  
 Pacman é um jogo de labirinto cujo objetivo é comer todas as bolinhas espalhadas pelo mapa, sem ser morto pelos fantasmas. Cada fantasma possui uma estratégia distinta para encurralar o pacman, e se locomovem pelo mapa conforme sua própria "personalidade".  
 
-Certifique-se de ter uma versão do gcc baixada (em Windows, use MinGW). Para executar: 
+Para executar: 
 1. baixar o arquivo do projeto 
 2. abrir a pasta no terminal 
-3. copiar e colar: make && ./PACMAN (Linux) ou mingw32-make e abrir o executável gerado (Windows)
+3. digitar ./PACMAN no Linux ou abrir o executável no Windows  
 
 Este código é uma versão simplificada. Diferente do clássico, este possui uma fase somente. 
 
