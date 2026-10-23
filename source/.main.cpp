@@ -60,5 +60,8 @@ int main(){
     else
         std::cout << "\nVoce perdeu :(\n";
     
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+    getchar();
     return 0;
 }

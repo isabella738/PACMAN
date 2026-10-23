@@ -22,7 +22,11 @@
     void restaurar_terminal(){
         tcsetattr(STDIN_FILENO, TCSANOW, &velho_terminal);
     }
+#else
+    #include <conio.h>
+    #include <windows.h>
 #endif 
+
 
 int ler_teclado(char *comando){
     #if defined(WINDOWS)
