@@ -38,8 +38,11 @@ int main(){
 
             if(fantasma[i]->cooldown(v)){
                 fantasma[i]->definir_alvo(modo_global);
-                fantasma[i]->definir_direcao();
-                if(fantasma[i]->modo != 3) fantasma[i]->andar();
+                
+                if(fantasma[i]->modo != 3){ 
+                    fantasma[i]->definir_direcao();
+                    fantasma[i]->andar();
+                }
             }
         }
         if(Pacman.cooldown(VEL_PAC)) Pacman.andar();

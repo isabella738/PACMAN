@@ -41,15 +41,22 @@ void inicializar_fantasmas(){// 1 vez no main
         Blinky.alvo = Pacman.p;
     };
     Blinky.dispersar = []() {
-        Blinky.alvo = {0, LARG};
+        Blinky.alvo = {1, LARG-2};
     };
 
     //
     Pinky.perseguir = []() {
-        Pinky.alvo = Pacman.p + direcao[Pacman.d]*2;
+        Coordenada p = Pacman.p + direcao[Pacman.d]*2;
+        if(p.x <= 0) p.x = 1;
+        else if(p.x >= LARG-1) p.x = LARG-2;
+
+        if(p.y <= 0) p.y = 1;
+        else if(p.y >= ALT-1) p.y = ALT-2;
+        
+        Pinky.alvo = p;
     };
     Pinky.dispersar = []() {
-        Pinky.alvo = {0, 0};
+        Pinky.alvo = {1, 1};
     };
 
     //
@@ -57,7 +64,7 @@ void inicializar_fantasmas(){// 1 vez no main
         equacao_reta(Blinky.p, Pacman.p + direcao[Pacman.d]*2, &Inky.alvo);
     };
     Inky.dispersar = []() {
-        Inky.alvo = {ALT, LARG};
+        Inky.alvo = {ALT-2, LARG-2};
     };
 
     //
@@ -66,7 +73,7 @@ void inicializar_fantasmas(){// 1 vez no main
         else Clyde.alvo = Pacman.p;
     };
     Clyde.dispersar = []() {
-        Clyde.alvo = {ALT, 0};
+        Clyde.alvo = {ALT-2, 1};
     };
 
     Pacman.cor = 2;
@@ -100,6 +107,8 @@ void inicialização_mapa(){// 1 vez no main
             mapa[y][x].c = cel[y][x];
         }
     }
+    mapa[9][14].tipo = 4;
+    mapa[9][15].tipo = 4;
 }
 
 void iniciar_fase(){
@@ -117,7 +126,8 @@ void iniciar_fase(){
     }
     
     //blinky começa fora do quadrado
-    Blinky.p = {8, 14}; Blinky.modo = 0; Blinky.liberado = 1;
+    Blinky.p = {8, 14}; 
+    Blinky.modo = 0; Blinky.liberado = 1;
 }
 
 void iniciar(){//antes de cada fase
@@ -140,12 +150,10 @@ void iniciar(){//antes de cada fase
 
 void entrar_no_quadrado(Fantasma *f){
     if(f->modo == 2 && f->p == Coordenada{8, 14}){//chegou na "porta"
-        f->desativar_barreiras = 1;
         f->entrando = 1;
     }
     else if(f->modo == 2 && f->p == f->spawn){ //chegou no spawn (entrou no quadrado)
         f->modo = 0;
-        f->desativar_barreiras = 0;
         f->entrando = 0;
     }
 }
@@ -167,25 +175,53 @@ double distancia(Coordenada p1, Coordenada p2){
     return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 }
 
-void equacao_reta(Coordenada a, Coordenada b, Coordenada *novo){//blinky, pacman, mira
-    //forma f(x) = mx + n
-    float ax = a.x, bx = b.x, cx;
-    float ay = a.y, by = b.y, cy;
-
-    cx = 2*bx - ax;
-
-    if(bx-ax<0.001){
-        cy = 2*by - ay;
+void equacao(double a, double b, double *y, double *x, double i){
+    if(i){ //achar y 
+        (*y) = a*(*x) + b;
     }
     else{
-        float m = (by - ay)/(bx - ax);
-        float n = ay - ax*m;
-        cy = m*cx + n;
+        (*x) = ((*y)-b)/a;
     }
-    cx = round(cx); cy = round(cy);
+}
 
-    novo->y = cy;
-    novo->x = cx;
+int ponto_valido(int y, int x){
+    if(x <= 0 || x >= LARG-1 || y <= 0 || y >= ALT-1) return 0;
+    if(mapa[y][x].tipo == 1) return 0;
+    return 1;
+}
+
+void equacao_reta(Coordenada ponto, Coordenada centro, Coordenada *novo){//blinky, pacman+2, mira
+
+    if(ponto.x == centro.x){
+        novo->y = 2*centro.y - ponto.y;
+        if(novo->y >= 0) novo->y = 1;
+        else if(novo->y <= ALT-1) novo->y = ALT-2;
+    }
+
+    double a = (double)(ponto.y - centro.y)/(ponto.x - centro.x);
+    double b = ponto.y - ponto.x*a;
+
+    Coordenada d = centro*2 - ponto;
+    double dx = d.x, dy = d.y;
+
+    if(dx <= 0){
+        if(dy != 10) dx = 1;
+    }
+    else if(dx >= LARG-1){
+        if(dy != 10) dx = LARG-2;        
+    }
+    equacao(a, b, &dy, &dx, 1);
+
+    if(dy <= 0){
+        dy = 1;
+    }
+    else if(dy >= ALT-1){
+        dy = ALT-2;        
+    }
+    equacao(a, b, &dy, &dx, 0);
+
+    dx = round(dx); dy = round(dy);
+    *(novo) = {(int)dy, (int)dx};
 }
 
 
@@ -232,7 +268,7 @@ void imprimir(){
     }
     std::cout <<"               \n";
 
-    //info_para_desenvolvedores();
+    info_para_desenvolvedores();
 }
 
 void pausa(int msg){
@@ -339,6 +375,22 @@ void pacman_comando(){
 }
 
 void info_para_desenvolvedores(){
+
+    for(int i=3; i>=0; i--){
+        for(int j=i; j>=0; j--) std::cout << "----------";
+        std::cout << "Fant " << i << '\n'; 
+        for(int j=i; j>=0; j--) std::cout << "----------";
+        std::cout << fantasma[i]->d << '\n';
+        for(int j=i; j>=0; j--) std::cout << "----------";
+        std::cout << fantasma[i]->velocidade << '\n';
+        for(int j=i; j>=0; j--) std::cout << "----------";
+        std::cout << modo_global << '\n';
+        for(int j=i; j>=0; j--) std::cout << "----------";
+        std::cout << "\033[4A\r";
+    }
+    std::cout << "\ndir\nveloc\nmodo\n";
+
+    /*
     std::cout << '\n';
     std::cout << Pacman.p.y << ' ' << Pacman.p.x << "   " << std::endl;
     std::cout << "Direcao: " << Pacman.d << std::endl;
@@ -349,4 +401,5 @@ void info_para_desenvolvedores(){
     //std::cout << "Cooldown: " << cd_assustados << "     " << std::endl;
     //std::cout << "Blinky.p: " << Blinky.p.y << ' ' << Blinky.p.x << "   " << std::endl;
     //std::cout << "Blinky.d: " << Blinky.d << "    " << std::endl;
+    */
 }

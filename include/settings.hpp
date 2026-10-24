@@ -54,6 +54,9 @@ struct Coordenada {
     Coordenada operator*(int n) const {
         return {y * n, x * n};
     }
+    Coordenada operator-(const Coordenada& outro) const {
+        return {y - outro.y, x - outro.x};
+    }
 };
 
 extern int pontos, modo_global, cd_assustados, cd_modo, vida, vitoria;

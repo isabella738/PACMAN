@@ -25,5 +25,5 @@ void iniciar_fase();
 void info_para_desenvolvedores();
 void pacman_comando();
 void cutscene();
-
+int busca_em_largura(Fantasma f, Coordenada inicio, int d_inicio, int bloquear_atras);
 #endif
